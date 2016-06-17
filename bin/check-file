@@ -1,0 +1,9 @@
+# This is a flag-file, for testing the user is in the bundle-directory
+
+# Put this into your .sh file:
+>>>>>>>>>>>>>>>>
+
+# make sure, the user has done a cd into the bundle (otherwise relative path do not work)
+[[ -e bin/check-file ]] || { echo >&2 "Please cd into the bundle before running this script."; exit 1; }
+
+<<<<<<<<<<<<<<<

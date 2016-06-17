@@ -1,0 +1,15 @@
+{
+  "name": "cubbles-docker-devutils",
+  "version": "0.1.0",
+  "description": "A set of utils, supporting core-developers to control a local docker-vm.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cubbles/cubbles-docker-devutils.git"
+  },
+  "keywords": [
+    "cubbles",
+    "docker"
+  ],
+  "author": "Hans-Dieter Böhlau",
+  "license": "Apache-2.0"
+}
