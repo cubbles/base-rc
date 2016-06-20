@@ -15,10 +15,10 @@ A set of utils, supporting core-developers to control a local docker-vm.
     $ ./bin/run.sh etc/base-local.conf lib/_docker-ps.sh
     
 ### Configuration
-A default configuration is provides at "`etc/default/default.conf`".
+A default configuration is provided at "`etc/default/default.conf`".
 Additionally some custom configuration files are prepared:
 
 * `base-devbase.conf`: This is for developers of the Base itself. It provides configuration options to mount a local directory into the docker-vm.
-* `base-local.conf`: Use this to setup and run a Cubbles Base locally. The configuration provides a Base -version (`CUBX_ENV_BASE_TAG`) the `setup` command is allowed to run.
+* `base-local.conf`: Use this to setup and run a Cubbles Base locally. The configuration provides a Base -version (`CUBX_ENV_BASE_TAG`) and the `setup` command is allowed to run.
 * `sphinx.conf`: This is for developers of the Cubbles documentation published at <https://cubbles.readthedocs.io>.  It provides configuration options to mount a local directory into the docker-vm.
  
