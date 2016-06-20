@@ -8,15 +8,19 @@ A set of utils, supporting core-developers to control a local docker-vm.
   
   Basically you need to provide a .conf -file (`etc/xyz.conf`) AND 1..n commands (`lib/command-file.sh`)
 
+```bash
     # Usage instructions
     $ ./bin/run.sh
     
     # Example1:
     $ ./bin/run.sh etc/base-local.conf lib/_docker-ps.sh
+```
     
 ### Configuration
-A default configuration is provided at "`etc/default/default.conf`".
-Additionally some custom configuration files are prepared:
+The default configuration is provided at "`etc/default/default.conf`".
+Put your custom configurations into the "`etc`" directory. Any `.conf` files there are ignored by git.  
+
+Some configuration examples files are prepared at "`etc/examples/`":
 
 * `base-devbase.conf`: This is for developers of the Base itself. It provides configuration options to mount a local directory into the docker-vm.
 * `base-local.conf`: Use this to setup and run a Cubbles Base locally. The configuration provides a Base -version (`CUBX_ENV_BASE_TAG`) and the `setup` command is allowed to run.
