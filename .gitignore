@@ -1,6 +1,4 @@
 .idea/workspace.xml
 
-#
-etc/base-devbase.conf
-etc/base-local.conf
-etc/sphinx.conf
+# custom configuration files
+etc/*.conf
