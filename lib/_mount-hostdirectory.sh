@@ -22,12 +22,12 @@ mountFolder () {
 ############# main script #############
 
 # check config
-if [ -e $CUBX_ENV_VM_MOUNTPOINT_LOCALLY_SHARED_FOLDER ];then {
+if [ -z $CUBX_ENV_VM_MOUNTPOINT_LOCALLY_SHARED_FOLDER ];then {
 		echo "   ERROR: Passed config contains no value for \"CUBX_ENV_VM_MOUNTPOINT_LOCALLY_SHARED_FOLDER\".";
 		exit 1;
 	}
 fi
-if [ -e $CUBX_ENV_VM_MOUNTPOINT ];then {
+if [ -z $CUBX_ENV_VM_MOUNTPOINT ];then {
 		echo "   ERROR: Passed config contains no value for \"CUBX_ENV_VM_MOUNTPOINT\".";
 		exit 1;
 	}
