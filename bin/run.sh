@@ -62,7 +62,7 @@ executeCommands(){
 	# ... and write it as file into the docker-vm
 	# ===============================================
 	ENV_TARGET="/mnt/sda1/tmp/cubx.conf"
-	echo -n "> Creating file \"$ENV_TARGET\" ... "
+    # echo -n "> Creating file \"$ENV_TARGET\" ... "
 	conf="$defaultConf"$'\n\n\n'"$customConf"
 
 	# escape double quotes as; otherwise you miss the within the written file
@@ -136,7 +136,7 @@ executeCommands(){
 	#
 	# remove cubx.conf
 	# ================
-	echo -n "< Removing file \"$ENV_TARGET\" ... "
+	# echo -n "< Removing file \"$ENV_TARGET\" ... "
 	command="sudo sh -c 'rm $ENV_TARGET'"
 	docker-machine ssh $DOCKER_VM "$command"
 	echo "Done."
