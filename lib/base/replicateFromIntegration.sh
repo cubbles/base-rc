@@ -28,8 +28,8 @@ echo
 echo "- - - - - -"
 echo
 echo "Summary:"
-echo " source (remote store-path): ${SOURCE}"
-echo " target (local db): ${TARGETDB}"
+echo " source (remote store-name like 'sandbox'): ${SOURCE}"
+echo " target (local db like 'webpackage-store-sandbox'): ${TARGETDB}"
 echo
 echo -n "Ready to go? (y)";read go;echo ""
 if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
