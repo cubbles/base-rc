@@ -22,7 +22,7 @@ start(){
     else
         baseBackupFolder="/var/tmp"
         # run the restore
-        docker run --rm -v "$baseBackupFolder:/backups" --volumes-from=$coreDataStoreContainer cubbles/base restore $CUBX_ENV_BASE_CLUSTER $backupFile
+        docker run --rm -v "$baseBackupFolder:/backups" --volumes-from=$coreDataStoreContainer cubbles/base:$CUBX_ENV_BASE_TAG restore $CUBX_ENV_BASE_CLUSTER $backupFile
     fi
     docker ps
 }

@@ -10,7 +10,7 @@ start(){
         baseImageFolder="$CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER"
         docker run --rm -v "$baseImageFolder/base/resources/opt/base:/opt/base" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base pull
     else
-        docker run --rm -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base pull
+        docker run --rm -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base:$CUBX_ENV_BASE_TAG pull
     fi
     docker ps
 }

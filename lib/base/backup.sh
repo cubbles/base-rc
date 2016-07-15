@@ -12,7 +12,7 @@ start(){
         docker run --rm -v "$baseBackupFolder:/backups" -v "$baseImageFolder/base/resources/opt/base:/opt/base" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base backup $CUBX_ENV_BASE_CLUSTER
     else
         baseBackupFolder="/mnt/sda1/tmp"
-        docker run --rm -v "$baseBackupFolder:/backups" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base backup $CUBX_ENV_BASE_CLUSTER
+        docker run --rm -v "$baseBackupFolder:/backups" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base:$CUBX_ENV_BASE_TAG backup $CUBX_ENV_BASE_CLUSTER
     fi
     docker ps
 }

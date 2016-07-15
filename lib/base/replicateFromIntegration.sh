@@ -38,7 +38,8 @@ if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
 }
 fi
 echo "go ..."
-COREDATASTORE_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' base.coredatastore.dev)
+COREDATASTORE_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' dev_base.coredatastore_1)
+echo $COREDATASTORE_IP
 replicationSource="https://replicator:webble#1@cubbles.world/${SOURCE}/_api/replicate/"
 curl -H 'Content-Type: application/json' -X POST -d '{"source":"'${replicationSource}'","target":"'${TARGETDB}'", "create_target":true}' http://admin:admin@$COREDATASTORE_IP:5984/_replicate
 echo "done."
