@@ -6,7 +6,7 @@
 ############# functions #############
 
 runDockerSphinx () {
-    docker run -t -v $1:/doc ddidier/sphinx-doc sudo $2 $3
+    docker run --name sphinx-doc  -t -v $1:/doc ddidier/sphinx-doc sudo $2 $3
 }
 
 ############# main script #############
