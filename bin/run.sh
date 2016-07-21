@@ -139,7 +139,7 @@ executeCommands(){
 	# echo -n "< Removing file \"$ENV_TARGET\" ... "
 	command="sudo sh -c 'rm $ENV_TARGET'"
 	docker-machine ssh $DOCKER_VM "$command"
-	echo "Done."
+	#echo "Done."
 }
 
 
