@@ -41,8 +41,8 @@ if [ "$(ls -A "$CUBX_ENV_VM_MOUNTPOINT")" ];then {
 		echo "$(ls -A $CUBX_ENV_VM_MOUNTPOINT)"
 		echo
 		echo "Folder should be emtpy? Maybe you need to ..."
-		echo " 1) ssh into the machine \n 2) remove locally files from the folder ($ rm -rf <file or folder>)"
-		echo " 2) remove local files from the folder ($ rm -rf <file or folder>)"
+		echo " 1) ssh into the machine \n 2) remove locally created files from the folder ($ rm -rf <file or folder>)"
+		echo " 2) remove local files from the folder ($ sudo rm -rf <file or folder>)"
 		echo
 		exit 0;
 	}
