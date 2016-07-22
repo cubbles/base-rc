@@ -84,7 +84,7 @@ executeCommands(){
 	argsArray=( "$@" )
 	for (( i=2; i<$#+1; i++ ));
 	do
-		#echo "DEBUG: ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
+#echo "DEBUG: ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
 		commandFile=${argsArray[$i-1]}
 		# If this command is NOT configured as allowed command within the provided .conf file, exit this script.
 		#echo "DEBUG: Number of commands configured: "${#ALLOWED_COMMANDS[@]}
@@ -94,8 +94,8 @@ executeCommands(){
 		}
 		fi
 
-		#echo "DEBUG: arrayContains: "$(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile")
-		if [ 1 == !$(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile") ]; then {
+#echo "DEBUG: arrayContains: "$(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile")
+		if [ 1 == $(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile") ]; then {
 			echo "  ERROR: Command \"$commandFile\" is NOT allowed for the selected configuration."
 			echo "  ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
 			exit 1
