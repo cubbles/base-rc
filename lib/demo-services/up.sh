@@ -8,7 +8,7 @@
 start(){
     if [ ${CUBX_ENV_DEMOSERVICES_CLUSTER} = "dev" ]; then
         baseImageFolder="$CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER"
-        docker run --rm -v "$baseImageFolder/demo-services/resources/opt/demo-services:/opt/demo-services" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/demo-services up $CUBX_ENV_DEMOSERVICES_CLUSTER
+        docker run --rm -v "$baseImageFolder/demo-services/resources/opt/demo-services:/opt/demo-services" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/demo-services up --forceRecreate $CUBX_ENV_DEMOSERVICES_CLUSTER
     else
         docker run --rm -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/demo-services up $CUBX_ENV_DEMOSERVICES_CLUSTER
     fi
