@@ -24,7 +24,7 @@ start(){
         image="cubbles/base"
         sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
     fi
-    echo $command
+    #echo $command
     echo "- - - - - -"
     echo "Result: "
     echo "-------"
