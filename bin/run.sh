@@ -46,17 +46,41 @@ executeCommands(){
 	}
 	fi
 
-	#
-	# Start a docker-vm
+	# Check for docker-vm
 	# ===============================================
 	echo "Operating on docker-machine \"$DOCKER_VM\""
-	STATUS=$(docker-machine status $DOCKER_VM)
-	echo "(docker-machine status: $STATUS)"
-	if [ ${STATUS} != "Running" ]; then
-		echo "docker-machine start ..."
-	  	docker-machine start $DOCKER_VM
-	  	echo "(docker-machine status $DOCKER_VM: $STATUS)"
+    STATUS=$(docker-machine status $DOCKER_VM)
+
+	# Create docker-vm
+	# ===============================================
+    if [[ -z ${STATUS} ]]; then
+		#echo "WARNING: docker-machine \"$DOCKER_VM\" does not exist"
+		echo -n "Shall I create \"$DOCKER_VM\" on your local virtualbox? (y)";read go;echo ""
+        if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
+            echo "Canceled."
+            exit 0
+        }
+        else {
+            docker-machine create --driver virtualbox $DOCKER_VM
+            docker-machine env $DOCKER_VM  > /dev/null 2>&1
+        }
+        fi
 	fi
+
+	# Start docker-vm
+	# ===============================================
+    STATUS=$(docker-machine status $DOCKER_VM)
+	if [ ${STATUS} != "Running" ]; then
+		echo "docker-machine start ..." 
+	  	docker-machine start $DOCKER_VM  
+	fi
+
+	# Show docker-machine states
+	# ===============================================
+    echo "=================================================="
+    docker-machine ls
+    echo "=================================================="
+    echo
 
 	#
 	# Concat default.conf and the parameter provided *.conf files
@@ -74,7 +98,6 @@ executeCommands(){
 	# write the file
 	command="sudo sh -c 'echo \""$conf"\" > $ENV_TARGET'"
 	docker-machine ssh $DOCKER_VM "$command"
-	echo "Done."
 	#docker-machine ssh $DOCKER_VM "cat $ENV_TARGET"
 
 
@@ -152,5 +175,4 @@ if [ $# -ge 2 ]; then {
 fi
 
 echo "Purpose: This script requires a configuration file and 1..n commands to run within a docker-vm running on your local host."
-echo "Usage: $0 etc/<customConfFile> lib/<command> [lib/<command> ...]" >&2
-exit 1
+echo "Usage: $0 etc/<cu

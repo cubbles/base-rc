@@ -9,9 +9,12 @@ mountFolder () {
     # http://tinycorelinux.net/faq.html#samba
     cd /mnt/sda1
     if [ ! -e /mnt/sda1/filesystems-4.2.9-tinycore.tcz ]; then {
-      sudo curl http://tinycorelinux.net/7.x/x86/tcz/filesystems-4.2.9-tinycore.tcz -o filesystems-4.2.9-tinycore.tcz
-     }
-     fi
+        lib=http://tinycorelinux.net/7.x/x86/tcz/filesystems-4.2.9-tinycore.tcz
+        echo -n "Installing \"$lib\"..."
+        sudo curl $lib -o filesystems-4.2.9-tinycore.tcz > /dev/null 2>&1
+        echo " Done."
+    }
+    fi
     tce-load -i /mnt/sda1/filesystems-4.2.9-tinycore.tcz > /dev/null
 
     sudo mkdir -p $2
@@ -35,7 +38,7 @@ fi
 
 # Already mounted?
 doMount=false
-if [ "$(ls -A "$CUBX_ENV_VM_MOUNTPOINT")" ];then {
+if [ "$(ls -A "$CUBX_ENV_VM_MOUNTPOINT" >> /dev/null 2>&1)" ];then {
 		echo "   INFO: Folder not empty. Assume, it is already mounted."
 		echo "Folder content: $(ls -A $CUBX_ENV_VM_MOUNTPOINT)"
 		echo "$(ls -A $CUBX_ENV_VM_MOUNTPOINT)"
