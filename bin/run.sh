@@ -9,6 +9,7 @@ if [ ! -e bin/check-file ]; then { echo >&2 "Please cd into the bundle before ru
 fi
 
 DEFAULT_CONF="etc/default/default.conf"
+REMOTE_WORKDIR="/mnt/sda1/tmp"
 
 # source the default configuration to have it available within this script too
 . $DEFAULT_CONF
@@ -61,7 +62,7 @@ executeCommands(){
 	# Concat default.conf and the parameter provided *.conf files
 	# ... and write it as file into the docker-vm
 	# ===============================================
-	ENV_TARGET="/mnt/sda1/tmp/cubx.conf"
+	ENV_TARGET="$REMOTE_WORKDIR/cubx.conf"
     # echo -n "> Creating file \"$ENV_TARGET\" ... "
 	conf="$defaultConf"$'\n\n\n'"$customConf"
 
@@ -129,7 +130,7 @@ executeCommands(){
 		# execute the "lib/<command>"
 		# ----------------------------
 		echo ">> Executing $commandFile"
-		docker-machine ssh $DOCKER_VM "$commandFileContent"
+		docker-machine ssh $DOCKER_VM "cd $REMOTE_WORKDIR && $commandFileContent"
 		echo "<< Executing $commandFile ... Done."
 	done
 

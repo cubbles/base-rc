@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # source the env (created in bin/run.sh) to create a user specific environment
-. /mnt/sda1/tmp/cubx.conf
+. cubx.conf
 
 ############# functions #############
 

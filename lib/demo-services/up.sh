@@ -1,20 +1,26 @@
 #!/bin/sh
 
 # source the env (created in bin/run.sh) to create a user specific environment
-. /mnt/sda1/tmp/cubx.conf
+. cubx.conf
 
 # --------- functions ---------
 
 start(){
+    image="cubbles/demo-services:$CUBX_ENV_DEMOSERVICES_TAG"
+    sourcesVolume=""
     if [ ${CUBX_ENV_DEMOSERVICES_CLUSTER} = "dev" ]; then
-        baseImageFolder="$CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER"
-        docker run --rm -v "$baseImageFolder/demo-services/resources/opt/demo-services:/opt/demo-services" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/demo-services up --forceRecreate $CUBX_ENV_DEMOSERVICES_CLUSTER
-    else
-        docker run --rm -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/demo-services up $CUBX_ENV_DEMOSERVICES_CLUSTER
+        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER/demo-services/resources/opt/demo-services:/opt/demo-services"
     fi
-    docker ps
+    command="up $CUBX_ENV_DEMOSERVICES_CLUSTER"
+
+    ######################
+    # run
+    ######################
+    docker run --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+
 }
 
+# --------- main ------------
 start
 
 

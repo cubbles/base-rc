@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # source the env (created in bin/run.sh) to create a user specific environment
-. /mnt/sda1/tmp/cubx.conf
+. cubx.conf
 
 # --------- functions ---------
 
@@ -11,14 +11,19 @@ start(){
     replWebpackages=$3
     replUser=$4
     replUserPw=$5
-    replContinuously=$6
+    replContinuously=""
+    if [ -z "$6" ] && [ "$6" == 'true' ]; then {
+        replContinuously="-c"
+    }
+    fi
 
     image="cubbles/base:$CUBX_ENV_BASE_TAG"
     sourcesVolume=""
+    network="cubbles_default"
 
-    command="add-replication $CUBX_ENV_BASE_CLUSTER $replSource $replTarget"
+    command="add-replication $replSource $replTarget"
     [[ ${replWebpackages} != "[]" ]] && command="$command -w $replWebpackages"
-    command="$command -u $replUser -p $replUserPw -c $replContinuously"
+    command="$command -u $replUser -p $replUserPw $replContinuously -a"
 
     if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
         image="cubbles/base"
@@ -29,12 +34,15 @@ start(){
     echo "Result: "
     echo "-------"
     # run the base container, execute the command and remove it immediately
-    docker run --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+    docker run --rm $sourcesVolume --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
     echo "- - - - - -"
     echo "Done. "
     echo "- - - - - -"
 
 }
+
+
+# --------- main ----------
 
 # local vars
 SOURCE_default='core'

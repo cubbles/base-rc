@@ -9,12 +9,9 @@ if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
     image="cubbles/base"
     sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
 fi
-command="logs $CUBX_ENV_BASE_CLUSTER --tail 100"
+command="ps $CUBX_ENV_BASE_CLUSTER"
 
 ######################
 # run
 ######################
 docker run --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
-docker ps | grep cubbles_base
-
-

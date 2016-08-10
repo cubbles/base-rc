@@ -1,20 +1,18 @@
 #!/bin/sh
 
 # source the env (created in bin/run.sh) to create a user specific environment
-. /mnt/sda1/tmp/cubx.conf
+. cubx.conf
 
-# --------- functions ---------
+image="cubbles/base:$CUBX_ENV_BASE_TAG"
+sourcesVolume=""
+if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
+    image="cubbles/base"
+    sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
+fi
+command="pull $CUBX_ENV_BASE_CLUSTER"
 
-start(){
-    if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
-        baseImageFolder="$CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER"
-        docker run --rm -v "$baseImageFolder/base/resources/opt/base:/opt/base" -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base api-test
-    else
-        docker run --rm -v "/var/run/docker.sock:/var/run/docker.sock" cubbles/base:$CUBX_ENV_BASE_TAG api-test
-    fi
-    docker ps
-}
-
-start
-
-
+######################
+# run
+######################
+docker run --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+docker ps | grep cubbles_base
