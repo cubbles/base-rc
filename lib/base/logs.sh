@@ -14,7 +14,7 @@ command="logs $CUBX_ENV_BASE_CLUSTER --tail 100"
 ######################
 # run
 ######################
-docker run --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+docker run --name cubbles_base --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
 docker ps | grep cubbles_base
 
 

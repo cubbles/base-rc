@@ -24,12 +24,20 @@ start(){
 # --------- main ----------
 echo
 CREDENTIALS_default="admin:admin"
-echo -n "Define admin credentials for the coredatastore (default: $CREDENTIALS_default) > ";read CREDENTIALS
-if [ -z "$CREDENTIALS" ]; then {
+if [ ${CUBX_COMMAND_USE_DEFAULTS} == "true" ]; then {
     CREDENTIALS=$CREDENTIALS_default
+    echo "INFO: Using DEFAULT credentials for coredatastore access [$CREDENTIALS]."
+    echo
+}
+else {
+    echo -n "Define admin credentials for coredatastore access (default: $CREDENTIALS_default) > ";read CREDENTIALS
+    if [ -z "$CREDENTIALS" ]; then {
+        CREDENTIALS=$CREDENTIALS_default
+    }
+    fi
+    echo "Entered: $CREDENTIALS"
 }
 fi
-echo "Entered: $CREDENTIALS"
 
 start $CREDENTIALS
 

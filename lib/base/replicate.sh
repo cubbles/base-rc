@@ -34,7 +34,7 @@ start(){
     echo "Result: "
     echo "-------"
     # run the base container, execute the command and remove it immediately
-    docker run --rm $sourcesVolume --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+    docker run --name cubbles_base --rm $sourcesVolume --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
     echo "- - - - - -"
     echo "Done. "
     echo "- - - - - -"

@@ -19,7 +19,7 @@ if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
 else
     baseBackupFolder="/var/tmp"
     # run the restore
-    docker run --rm -v "$baseBackupFolder:/backups" --volumes-from=$coreDataStoreContainer cubbles/base:$CUBX_ENV_BASE_TAG restore $CUBX_ENV_BASE_CLUSTER $backupFile
+    docker run --name cubbles_base --rm -v "$baseBackupFolder:/backups" --volumes-from=$coreDataStoreContainer cubbles/base:$CUBX_ENV_BASE_TAG restore $CUBX_ENV_BASE_CLUSTER $backupFile
 fi
 
 # show base processes

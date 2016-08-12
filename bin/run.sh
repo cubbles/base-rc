@@ -175,4 +175,4 @@ if [ $# -ge 2 ]; then {
 fi
 
 echo "Purpose: This script requires a configuration file and 1..n commands to run within a docker-vm running on your local host."
-echo "Usage: $0 etc/<cu
+echo "Usage: $0 etc/<.conf> lib/<.sh>"
