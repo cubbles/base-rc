@@ -2,3 +2,11 @@
 
 # custom configuration files
 etc/*.conf
+!etc/base-dev.conf
+!etc/base-local.conf
+!etc/demo-services-dev.conf
+!etc/demo-services-local.conf
+!etc/docs.rtd.cubbles-dev.conf
+!etc/docs.rtd.cubblesBde-dev.conf
+!etc/docs.rtd.cubblesCdt-dev.conf
+!etc/docs.rtd.cubblesRte-dev.conf
