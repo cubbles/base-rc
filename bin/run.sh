@@ -61,7 +61,15 @@ executeCommands(){
             exit 0
         }
         else {
-            docker-machine create --driver virtualbox $DOCKER_VM
+            VBOX_DiskSize_default=20 # GB
+            echo -n "Define the virtualbox disk-size (default: $VBOX_DiskSize_default GB) > ";read VBOX_DiskSize
+            if [ -z "$VBOX_DiskSize" ]; then {
+                VBOX_DiskSize=$VBOX_DiskSize_default
+            }
+            fi
+            echo "Entered: $VBOX_DiskSize GB"
+            VBOX_DiskSize=$(($VBOX_DiskSize * 1000)) # docker-machine expects the number in MB
+            docker-machine create --driver virtualbox --virtualbox-disk-size $VBOX_DiskSize $DOCKER_VM
             docker-machine env $DOCKER_VM  > /dev/null 2>&1
         }
         fi
@@ -139,6 +147,7 @@ executeCommands(){
 			echo -n "  * Username: "; read username
 			echo -n "  * Password: "; read -s password
 			echo
+			echo "  Executing command with username '$username' ..."
 			# Note: The password will be passed into the cubx.conf file AND the file will be removed instantly at the end of this script.
 			# I already tried at least to base64 encode and decode the password, but I didn't manage to make base64 work within the docker-vm (tinycorelinux)
 			userCredentials=CUBX_ENV_HOST_USER=$username$'\n'CUBX_ENV_HOST_PW=$password
