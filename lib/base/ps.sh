@@ -7,7 +7,7 @@ image="cubbles/base:$CUBX_ENV_BASE_TAG"
 sourcesVolume=""
 if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
     image="cubbles/base"
-    sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
+    sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
 fi
 command="ps $CUBX_ENV_BASE_CLUSTER"
 

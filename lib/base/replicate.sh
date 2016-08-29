@@ -9,25 +9,27 @@ start(){
     replSource=$1
     replTarget=$2
     replWebpackages=$3
-    replUser=$4
-    replUserPw=$5
-    replContinuously=""
-    if [ -z "$6" ] && [ "$6" == 'true' ]; then {
-        replContinuously="-c"
+    replContinuously=$4
+    replUser=$5
+    replUserPw=$6
+    replSourceCredentials=$7
+    replSourceCredentials=""
+    if [ ! -z "$7" ]; then {
+        replSourceCredentials="-r $7"
     }
     fi
 
     image="cubbles/base:$CUBX_ENV_BASE_TAG"
     sourcesVolume=""
     network="cubbles_default"
-
     command="add-replication $replSource $replTarget"
-    [[ ${replWebpackages} != "[]" ]] && command="$command -w $replWebpackages"
-    command="$command -u $replUser -p $replUserPw $replContinuously -a"
-
+    [[ ${replWebpackages} != "all" ]] && command="$command -w $replWebpackages"
+    [[ ${replContinuously} == "true" ]] && command="$command -c"
+    command="$command -u $replUser -p $replUserPw $replSourceCredentials -a"
+echo $command
     if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
         image="cubbles/base"
-        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
+        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
     #echo $command
     echo "- - - - - -"
@@ -47,6 +49,7 @@ start(){
 # local vars
 SOURCE_default='core'
 TARGET_default='sandbox'
+CONTINUOUSLY_default='false'
 echo
 echo -n "Enter store to replicate FROM (default: $SOURCE_default) > ";read SOURCE
 #
@@ -65,21 +68,43 @@ fi
 echo "Entered: $TARGET"
 
 echo
-echo -n "Enter an array of webpackages to be replicated (example: [\"pack-a@1.0\", \"pack-b@1.1\"], default: []) > ";read WEBPACKAGES
+echo -n "Replicate continuously (default: $CONTINUOUSLY_default) > ";read CONTINUOUSLY
+if [ -z "$CONTINUOUSLY" ] || [ "$CONTINUOUSLY" != 'true' ]; then {
+    CONTINUOUSLY=$CONTINUOUSLY_default
+}
+fi
+echo "Entered: $CONTINUOUSLY"
+
+echo
+echo -n "Enter an array of webpackages to be replicated (example: pack-a@1.0,pack-b@1.1], leave blank to replicate all webpackages) > ";read WEBPACKAGES
 WEBPACKAGES=${WEBPACKAGES// /} #remove spaces
 if [ -z "$WEBPACKAGES" ]; then {
-    WEBPACKAGES="[]"
+    WEBPACKAGES="all"
 }
 fi
 echo "Entered: $WEBPACKAGES"
+
+echo
+echo -n "If required, please enter credentials for the replication source (example: 'user:pass'; leave blank if not required) > ";read SOURCE_CREDENTIALS
+SOURCE_CREDENTIALS=${SOURCE_CREDENTIALS// /} #remove spaces
+if [ -z "$SOURCE_CREDENTIALS" ]; then {
+    SOURCE_CREDENTIALS=""
+}
+fi
+echo "Entered: $SOURCE_CREDENTIALS"
 
 ##
 echo
 echo "- - - - - -"
 echo "Summary:"
-echo " source (source): ${SOURCE}"
-echo " target (local target): ${TARGET}"
+echo " source: ${SOURCE}"
+echo " target: ${TARGET}"
 echo " webpackages: ${WEBPACKAGES}"
+echo " continuously: ${CONTINUOUSLY}"
+if [ ! -z "$SOURCE_CREDENTIALS" ]; then {
+    echo " source-credentials: ***:***"
+}
+fi
 echo
 echo -n "Ready to go? (y)";read go;echo ""
 if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
@@ -87,9 +112,5 @@ if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
     exit 0
 }
 fi
-#replicationSource="https://replicator:webble#1@cubbles.world/${SOURCE}/_api/replicate/"
-#curl -H 'Content-Type: application/json' -X POST -d '{"source":"'${replicationSource}'","target":"'${TARGET}'", "create_target":true}' http://admin:admin@$COREDATASTORE_IP:5984/_replicate
-#curl -H 'Content-Type: application/json' -X POST -d '{"source":"'${replicationSource}'","target":"'${TARGET}'", "create_target":true}' http://admin:admin@$COREDATASTORE_IP:5984/_replicate
-#echo "done."
 
-start $SOURCE $TARGET $WEBPACKAGES admin admin false
+start $SOURCE $TARGET $WEBPACKAGES $CONTINUOUSLY admin admin $SOURCE_CREDENTIALS

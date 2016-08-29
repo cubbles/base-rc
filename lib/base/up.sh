@@ -10,7 +10,7 @@ start(){
     sourcesVolume=""
     if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
         image="cubbles/base"
-        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/base/resources/opt/base:/opt/base"
+        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
     command="up $CUBX_ENV_BASE_CLUSTER -a $credentials"
 
