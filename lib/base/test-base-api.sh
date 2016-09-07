@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# source the env (created in bin/run.sh) to create a user specific environment
-. cubx.conf
+# Note:
+# -----
+# The bin/run.sh script dynamically writes the selected configuration at the beginning of this file.
+# Therefore you can use any variable defined within the etc/*.conf file here.
+
 # --------- functions ----------
 start(){
     env="BASE_AUTH_DATASTORE_ADMINCREDENTIALS=$1"

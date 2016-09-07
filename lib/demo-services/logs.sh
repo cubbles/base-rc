@@ -1,7 +1,9 @@
 #!/bin/sh
 
-# source the env (created in bin/run.sh) to create a user specific environment
-. cubx.conf
+# Note:
+# -----
+# The bin/run.sh script dynamically writes the selected configuration at the beginning of this file.
+# Therefore you can use any variable defined within the etc/*.conf file here.
 
 if [ ${CUBX_ENV_DEMOSERVICES_CLUSTER} = "dev" ]; then
     baseImageFolder="$CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER"

@@ -8,12 +8,6 @@
 if [ ! -e bin/check-file ]; then { echo >&2 "Please cd into the bundle before running this script."; exit 1; }
 fi
 
-DEFAULT_CONF="etc/default/default.conf"
-REMOTE_WORKDIR="/mnt/sda1/tmp"
-
-# source the default configuration to have it available within this script too
-. $DEFAULT_CONF
-
 
 # --------- functions ---------
 arrayContains(){
@@ -29,87 +23,6 @@ arrayContains(){
 }
 
 executeCommands(){
-	#
-	# Prepare conf file (must be sourced within the command scripts)
-	# ===============================================
-
-	defaultConf=$(cat $DEFAULT_CONF)
-	customConf=""
-	if [[ ("${1#*'.conf'}" != "$1") && ( -e $1 ) ]]; then {
-		customConf=$(cat $1)
-		# source the default configuration to have it available within this script too
-		. $1
-	}
-	else {
-		echo $'\n'"  ERROR: Expected an existing \"*.conf\" File."
-		exit 1
-	}
-	fi
-
-	# Check for docker-vm
-	# ===============================================
-	echo "Operating on docker-machine \"$DOCKER_VM\""
-    STATUS=$(docker-machine status $DOCKER_VM)
-
-	# Create docker-vm
-	# ===============================================
-    if [[ -z ${STATUS} ]]; then
-		#echo "WARNING: docker-machine \"$DOCKER_VM\" does not exist"
-		echo -n "Shall I create \"$DOCKER_VM\" on your local virtualbox? (y)";read go;echo ""
-        if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
-            echo "Canceled."
-            exit 0
-        }
-        else {
-            VBOX_DiskSize_default=20 # GB
-            echo -n "Define the virtualbox disk-size (default: $VBOX_DiskSize_default GB) > ";read VBOX_DiskSize
-            if [ -z "$VBOX_DiskSize" ]; then {
-                VBOX_DiskSize=$VBOX_DiskSize_default
-            }
-            fi
-            echo "Entered: $VBOX_DiskSize GB"
-            VBOX_DiskSize=$(($VBOX_DiskSize * 1000)) # docker-machine expects the number in MB
-            docker-machine create --driver virtualbox --virtualbox-disk-size $VBOX_DiskSize $DOCKER_VM
-            docker-machine env $DOCKER_VM  > /dev/null 2>&1
-        }
-        fi
-	fi
-
-	# Start docker-vm
-	# ===============================================
-    STATUS=$(docker-machine status $DOCKER_VM)
-	if [ ${STATUS} != "Running" ]; then
-		echo "docker-machine start ..." 
-	  	docker-machine start $DOCKER_VM  
-	fi
-
-	# Show docker-machine states
-	# ===============================================
-    echo "=================================================="
-    docker-machine ls
-    echo "=================================================="
-    echo
-
-	#
-	# Concat default.conf and the parameter provided *.conf files
-	# ... and write it as file into the docker-vm
-	# ===============================================
-	ENV_TARGET="$REMOTE_WORKDIR/cubx.conf"
-    # echo -n "> Creating file \"$ENV_TARGET\" ... "
-	conf="$defaultConf"$'\n\n\n'"$customConf"
-
-	# escape double quotes as; otherwise you miss the within the written file
-	replace=\"
-	replacement="\\\""
-	conf=${conf//"$replace"/"$replacement"}
-
-	# write the file
-	command="sudo sh -c 'echo \""$conf"\" > $ENV_TARGET'"
-	docker-machine ssh $DOCKER_VM "$command"
-	#docker-machine ssh $DOCKER_VM "cat $ENV_TARGET"
-
-
-	#
 	# for each "lib/<command>" passed, run a ssh call
 	# ===============================================
 
@@ -134,14 +47,22 @@ executeCommands(){
 		}
 		fi
 
-		# Check for command-file to be available.
+		# Check for the command-file to be available.
 		if [[ ! -e $commandFile ]]; then {
 			echo "  ERROR: File \"$commandFile\" not found."
 			exit 1
 		}
 		fi
+
+		# load the commandFile
 		commandFileContent=$(<$commandFile)
-		# If this is the mount-command, ask for user credentials to mount a local directory into the $DOCKER_VM machine
+
+		# concatenate .conf and the commands .sh -file
+        shebang="#!/bin/sh"
+        shebangAndConf="$shebang"$'\n'"$concatenatedConf"
+        commandFileContent=${commandFileContent/"$shebang"/"$shebangAndConf"}
+
+		# If this is the mount-command, ask for user credentials to mount a local directory into the $DOCKER_VBOX machine
 		if [ "$commandFile" = "lib/_mount-hostdirectory.sh" ];then {
 			echo "  Command \"$commandFile\" requires credentials to mount the configured host-directory"
 			echo -n "  * Username: "; read username
@@ -151,9 +72,8 @@ executeCommands(){
 			# Note: The password will be passed into the cubx.conf file AND the file will be removed instantly at the end of this script.
 			# I already tried at least to base64 encode and decode the password, but I didn't manage to make base64 work within the docker-vm (tinycorelinux)
 			userCredentials=CUBX_ENV_HOST_USER=$username$'\n'CUBX_ENV_HOST_PW=$password
-			replace="#!/bin/sh"
-			replacement="#!/bin/sh"$'\n'$userCredentials
-			commandFileContent=${commandFileContent/"$replace"/"$replacement"}
+			shebangAndCredentials="$shebang"$'\n'"$userCredentials"
+			commandFileContent=${commandFileContent/"$shebang"/"$shebangAndCredentials"}
 			# echo $commandFileContent
 		}
 		fi
@@ -162,26 +82,125 @@ executeCommands(){
 		# execute the "lib/<command>"
 		# ----------------------------
 		echo ">> Executing $commandFile"
-		docker-machine ssh $DOCKER_VM "cd $REMOTE_WORKDIR && $commandFileContent"
+		if [[ ! -z $DOCKER_VBOX ]]; then
+		    docker-machine ssh $DOCKER_VBOX "$commandFileContent"
+		else
+		    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$commandFileContent"
+		fi
 		echo "<< Executing $commandFile ... Done."
 	done
-
-	#
-	# remove cubx.conf
-	# ================
-	# echo -n "< Removing file \"$ENV_TARGET\" ... "
-	command="sudo sh -c 'rm $ENV_TARGET'"
-	docker-machine ssh $DOCKER_VM "$command"
-	#echo "Done."
 }
 
+prepareVBox(){
+    # Check state of vm
+    # ===============================================
+    STATUS=$(docker-machine status $DOCKER_VBOX)
+
+    # Create docker-vm
+    # ===============================================
+    if [[ -z ${STATUS} ]]; then
+        #echo "WARNING: docker-machine \"$DOCKER_VBOX\" does not exist"
+        echo -n "Shall I create \"$DOCKER_VBOX\" as a local virtual-box? (y)";read go;echo ""
+        if [ ! -z "$go" ] && [ "$go" != 'y' ]; then {
+            echo "Canceled."
+            exit 0
+        }
+        else {
+            VBOX_DiskSize_default=20 # GB
+            echo -n "Define the virtualbox disk-size (default: $VBOX_DiskSize_default GB) > ";read VBOX_DiskSize
+            if [ -z "$VBOX_DiskSize" ]; then {
+                VBOX_DiskSize=$VBOX_DiskSize_default
+            }
+            fi
+            echo "Entered: $VBOX_DiskSize GB"
+            echo ""
+            VBOX_DiskSize=$(($VBOX_DiskSize * 1000)) # docker-machine expects the number in MB
+            docker-machine create --driver virtualbox --virtualbox-disk-size $VBOX_DiskSize $DOCKER_VBOX
+            docker-machine env $DOCKER_VBOX  > /dev/null 2>&1
+        }
+        fi
+    fi
+
+    # Start docker-vm
+    # ===============================================
+    STATUS=$(docker-machine status $DOCKER_VBOX)
+    if [ ${STATUS} != "Running" ]; then
+        # echo "docker-machine start ..."
+        docker-machine start $DOCKER_VBOX
+        docker-machine env $DOCKER_VBOX
+        docker-machine regenerate-certs -f $DOCKER_VBOX
+    fi
+
+
+    # Show docker-machine states
+    # ===============================================
+    echo "=================================================="
+    docker-machine ls
+    echo "=================================================="
+    echo
+}
+
+prepareConfiguration(){
+	#
+	# Provide the configuration (default + custom)
+	# ===============================================
+    DEFAULT_CONF="etc/default/default.conf"
+	defaultConf=$(cat $DEFAULT_CONF)
+    # source the default configuration to have it available within this script too
+    . $DEFAULT_CONF
+
+	customConf=""
+	if [[ ("${1#*'.conf'}" != "$1") && ( -e $1 ) ]]; then {
+		customConf=$(cat $1)
+		# source the custom configuration to have it available within this script too
+		. $1
+	}
+	else {
+		echo $'\n'"  ERROR: Expected an existing \"*.conf\" File."
+		exit 1
+	}
+	fi
+
+	#
+	# Concat default.conf and the parameter provided <custom>.conf files
+	# ... to add it at the beginning of each command .sh file
+	# ===============================================
+    # echo -n "> Creating file \"$ENV_TARGET\" ... "
+	concatenatedConf="$defaultConf"$'\n\n\n'"$customConf"
+}
 
 # ------- main ---------
 if [ $# -ge 2 ]; then {
+    prepareConfiguration $@
+
+    if [[ ! -z $DOCKER_VBOX ]] && [[ ! -z $DOCKER_REMOTE_HOST_IP ]]; then {
+        echo "Configuration Error: Expecting \$DOCKER_VBOX OR \$DOCKER_REMOTE_HOST_* config to be available."
+        exit 1
+    }
+    fi
+
+    # If we operate on a VirtualBox based docker host ...
+    if [[ ! -z $DOCKER_VBOX ]]; then {
+        echo "Operating on virtual-box \"$DOCKER_VBOX\""
+        prepareVBox $@
+    }
+    else {
+        echo "Operating on remote host with IP \"$DOCKER_REMOTE_HOST_IP\""
+    }
+    fi
+
+    # execute 1..n commands passed as arguments
 	executeCommands $@
 	exit 0
 }
 fi
 
-echo "Purpose: This script requires a configuration file and 1..n commands to run within a docker-vm running on your local host."
-echo "Usage: $0 etc/<.conf> lib/<.sh>"
+echo
+echo "Info:"
+echo "------------"
+echo "This script requires a configuration file and 1..n command file(s)."
+echo "The commands will be executed on the configured (docker-) host."
+echo
+echo "Usage:"
+echo "-----"
+echo "$0 etc/<.conf> lib/<.sh> [lib/<.sh> ...]"

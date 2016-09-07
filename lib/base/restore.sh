@@ -1,7 +1,9 @@
 #!/bin/sh
 
-# source the env (created in bin/run.sh) to create a user specific environment
-. cubx.conf
+# Note:
+# -----
+# The bin/run.sh script dynamically writes the selected configuration at the beginning of this file.
+# Therefore you can use any variable defined within the etc/*.conf file here.
 
 # Mount the volumes from the 'base.coredatastore' -container into the 'base' container.
 #  Doing so, the 'base' container gets access to the couch database folder
