@@ -10,3 +10,6 @@ etc/*.conf
 !etc/docs.rtd.cubblesBde-dev.conf
 !etc/docs.rtd.cubblesCdt-dev.conf
 !etc/docs.rtd.cubblesRte-dev.conf
+
+# all .tar* files
+*.tar*
