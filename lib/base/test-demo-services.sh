@@ -15,7 +15,6 @@ network1="cubbles_default"
 network2="cubbles_base.gateway"
 
 if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
-    image="cubbles/base"
     sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
 fi
 # run the base container, connect it to the cubbles network, execute the command and remove it immediately

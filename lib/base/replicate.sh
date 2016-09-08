@@ -27,9 +27,8 @@ start(){
     [[ ${replWebpackages} != "all" ]] && command="$command -w $replWebpackages"
     [[ ${replContinuously} == "true" ]] && command="$command -c"
     command="$command -u $replUser -p $replUserPw $replSourceCredentials -a"
-echo $command
+#echo $command
     if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
-        image="cubbles/base"
         sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
     #echo $command
