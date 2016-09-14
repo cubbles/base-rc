@@ -1,0 +1,1 @@
+This folder may be used to manage resources to be moved to the host machine.
