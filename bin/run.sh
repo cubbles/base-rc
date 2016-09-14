@@ -29,7 +29,7 @@ executeCommands(){
 	argsArray=( "$@" )
 	for (( i=2; i<$#+1; i++ ));
 	do
-#echo "DEBUG: ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
+        #echo "DEBUG: ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
 		commandFile=${argsArray[$i-1]}
 		# If this command is NOT configured as allowed command within the provided .conf file, exit this script.
 		#echo "DEBUG: Number of commands configured: "${#ALLOWED_COMMANDS[@]}
@@ -39,7 +39,7 @@ executeCommands(){
 		}
 		fi
 
-#echo "DEBUG: arrayContains: "$(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile")
+        #echo "DEBUG: arrayContains: "$(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile")
 		if [ 1 == $(arrayContains "${ALLOWED_COMMANDS[*]}" "$commandFile") ]; then {
 			echo "  ERROR: Command \"$commandFile\" is NOT allowed for the selected configuration."
 			echo "  ALLOWED_COMMANDS=${ALLOWED_COMMANDS[*]}"
@@ -53,6 +53,47 @@ executeCommands(){
 			exit 1
 		}
 		fi
+
+		# COPY customizations to the host
+        # 1) docker-compose-custom.yml:
+        #        To be mounted into the cubbles/base container to override the compose config.
+        # 2) any other files:
+        #        To be mounted into any other cubbles/base.* container to override container resources.
+        #        This can be used to customize and/or patch the Cubbles-Base.
+        # ============================================================================
+
+        removeConfigCommand="sh -c 'rm -rf $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+        # boot2docker sometimes changes the ownership of the config folder to root (*grrr*) - therefore we remove with 'sudo'
+        removeConfigCommandVBOX="sh -c 'sudo rm -rf $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+        setOwnerCommand="sh -c 'chown -R $DOCKER_REMOTE_HOST_USER:docker $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+        setPermissionsCommand="sh -c 'chmod 740 -R $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+        {
+            #try
+            if [ "$commandFile" = "lib/base/setup.sh" ];then {
+                echo ">> Transferring '$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER' to host as '$CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+                if [ ! -d "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" ]; then
+                    echo "   ERROR: Folder \"$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER\" NOT found."
+                    exit 1
+                fi
+                if [[ ! -z $DOCKER_VBOX ]]; then
+                    docker-machine ssh $DOCKER_VBOX "$removeConfigCommandVBOX"
+                    docker-machine scp -r "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" $DOCKER_VBOX:"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER"
+                    docker-machine ssh $DOCKER_VBOX "$setOwnerCommand"
+                    docker-machine ssh $DOCKER_VBOX "$setPermissionsCommand"
+                else
+                    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$removeConfigCommand"
+                    scp -i "$DOCKER_REMOTE_HOST_KEY" -r -P "$DOCKER_REMOTE_HOST_PORT" "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" "$DOCKER_REMOTE_HOST_USER"@"$DOCKER_REMOTE_HOST_IP":"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER"
+                    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$setOwnerCommand"
+                    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$setPermissionsCommand"
+                fi
+            }
+            fi
+
+        } || {
+            #catch
+            echo "   ERROR: Setup failed."
+            exit 1
+        }
 
 		# load the commandFile
 		commandFileContent=$(<$commandFile)
@@ -135,7 +176,7 @@ prepareVBox(){
     # Show docker-machine states
     # ===============================================
     echo "=================================================="
-    docker-machine ls
+    docker-machine ls | grep "NAME\|$DOCKER_VBOX"
     echo "=================================================="
     echo
 }

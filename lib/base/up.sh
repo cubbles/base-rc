@@ -7,19 +7,25 @@
 
 # --------- functions ----------
 start(){
+    if [[ -z $CUBX_ENV_BASE_HOST_CONFIG_FOLDER ]]; then
+        echo "   ERROR: Cubbles-Base config NOT found. Expected config folder at \"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER\"."
+        exit 1
+    fi
+
     credentials=$1
     image="cubbles/base:$CUBX_ENV_BASE_TAG"
+    customConfigVolume="-v $CUBX_ENV_BASE_HOST_CONFIG_FOLDER:/opt/base/etc/custom"
     sourcesVolume=""
-    if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
+    if [[ ! -z $CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER ]]; then
         sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
-    command="up $CUBX_ENV_BASE_CLUSTER -a $credentials"
+    command="up -a $credentials"
 
     ######################
     # run
     ######################
-    docker run --name cubbles_base --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
-    docker run --name cubbles_base --rm $sourcesVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image ps $CUBX_ENV_BASE_CLUSTER
+    docker run --name cubbles_base --rm $sourcesVolume $customConfigVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+    docker run --name cubbles_base --rm $sourcesVolume $customConfigVolume -v "/var/run/docker.sock:/var/run/docker.sock" $image ps $CUBX_ENV_BASE_CLUSTER
 }
 
 # --------- main ----------

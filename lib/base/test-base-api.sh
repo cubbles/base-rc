@@ -7,17 +7,23 @@
 
 # --------- functions ----------
 start(){
+    if [[ -z $CUBX_ENV_BASE_HOST_CONFIG_FOLDER ]]; then
+        echo "   ERROR: Cubbles-Base config NOT found. Expected config folder at \"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER\"."
+        exit 1
+    fi
+
     env="BASE_AUTH_DATASTORE_ADMINCREDENTIALS=$1"
-    image="cubbles/base:$CUBX_ENV_BASE_TAG"
-    sourcesVolume=""
     command="test-base-api"
     network="cubbles_default"
 
-    if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
+    image="cubbles/base:$CUBX_ENV_BASE_TAG"
+    customConfigVolume="-v $CUBX_ENV_BASE_HOST_CONFIG_FOLDER:/opt/base/etc/custom"
+    sourcesVolume=""
+    if [[ ! -z $CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER ]]; then
         sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
     # run the base container, connect it to the cubbles network, execute the command and remove it immediately
-    docker run --name cubbles_base --rm $sourcesVolume -e $env --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+    docker run --name cubbles_base --rm $sourcesVolume $customConfigVolume -e $env --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
 }
 
 # --------- main ----------

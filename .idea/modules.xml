@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cubbles-docker-utils.iml" filepath="$PROJECT_DIR$/.idea/cubbles-docker-utils.iml" />
+      <module fileurl="file://C:/data/projects.webbles/github/base-remote-control/.idea/base-remote-control.iml" filepath="C:/data/projects.webbles/github/base-remote-control/.idea/base-remote-control.iml" />
     </modules>
   </component>
 </project>

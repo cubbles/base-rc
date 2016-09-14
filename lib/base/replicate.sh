@@ -20,15 +20,19 @@ start(){
     }
     fi
 
+    if [[ -z $CUBX_ENV_BASE_HOST_CONFIG_FOLDER ]]; then
+        echo "   ERROR: Cubbles-Base config NOT found. Expected config folder at \"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER\"."
+        exit 1
+    fi
     image="cubbles/base:$CUBX_ENV_BASE_TAG"
+    customConfigVolume="-v $CUBX_ENV_BASE_HOST_CONFIG_FOLDER:/opt/base/etc/custom"
     sourcesVolume=""
     network="cubbles_default"
     command="add-replication $replSource $replTarget"
     [[ ${replWebpackages} != "all" ]] && command="$command -w $replWebpackages"
     [[ ${replContinuously} == "true" ]] && command="$command -c"
     command="$command -u $replUser -p $replUserPw $replSourceCredentials -a"
-#echo $command
-    if [ ${CUBX_ENV_BASE_CLUSTER} = "dev" ]; then
+    if [[ ! -z $CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER ]]; then
         sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_BASE_IMAGE_LOCAL_SOURCE_FOLDER/opt/base:/opt/base"
     fi
     #echo $command
@@ -36,7 +40,7 @@ start(){
     echo "Result: "
     echo "-------"
     # run the base container, execute the command and remove it immediately
-    docker run --name cubbles_base --rm $sourcesVolume --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
+    docker run --name cubbles_base --rm $sourcesVolume $customConfigVolume --net $network -v "/var/run/docker.sock:/var/run/docker.sock" $image $command
     echo "- - - - - -"
     echo "Done. "
     echo "- - - - - -"
