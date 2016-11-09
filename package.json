@@ -1,6 +1,6 @@
 {
   "name": "base-rc",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "A ssh based remote-control for the Cubbles Base.",
   "repository": {
     "type": "git",
