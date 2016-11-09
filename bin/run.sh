@@ -54,35 +54,59 @@ executeCommands(){
 		}
 		fi
 
-		# COPY customizations to the host
-        # 1) docker-compose-custom.yml:
-        #        To be mounted into the cubbles/base container to override the compose config.
-        # 2) any other files:
-        #        To be mounted into any other cubbles/base.* container to override container resources.
-        #        This can be used to customize and/or patch the Cubbles-Base.
-        # ============================================================================
+		#
+		# execute the "lib/<command>"
+		# ----------------------------
+		echo ">> Executing $commandFile"
 
-        removeConfigCommand="sh -c 'rm -rf $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
-        # boot2docker sometimes changes the ownership of the config folder to root (*grrr*) - therefore we remove with 'sudo'
-        removeConfigCommandVBOX="sh -c 'sudo rm -rf $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
-        setOwnerCommand="sh -c 'chown -R $DOCKER_REMOTE_HOST_USER:docker $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
-        setPermissionsCommand="sh -c 'chmod 740 -R $CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
+        # if setup command: Transfer customizations to the host
+        # 1) docker-compose-custom.yml:
+        #        To be mounted into the root container to override the compose config.
+        # 2) any other files:
+        #        To be mounted into any other container to override container resources.
+        #        This can be used to customize and/or patch any service.
+        # ============================================================================
         {
+            removeConfigCommand="sh -c 'rm -rf $ENV_HOST_CONFIG_FOLDER'"
+            # boot2docker sometimes changes the ownership of the config folder to root (*grrr*) - therefore we remove with 'sudo'
+            removeConfigCommandVBOX="sh -c 'sudo rm -rf $ENV_HOST_CONFIG_FOLDER'"
+            setOwnerCommand="sh -c 'chown -R $DOCKER_REMOTE_HOST_USER:docker $ENV_HOST_CONFIG_FOLDER'"
+            setPermissionsCommand="sh -c 'chmod 740 -R $ENV_HOST_CONFIG_FOLDER'"
             #try
-            if [ "$commandFile" = "lib/base/setup.sh" ];then {
-                echo ">> Transferring '$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER' to host as '$CUBX_ENV_BASE_HOST_CONFIG_FOLDER'"
-                if [ ! -d "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" ]; then
-                    echo "   ERROR: Folder \"$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER\" NOT found."
-                    exit 1
-                fi
+            if [ "$commandFile" = "lib/setup.sh" ];then {
+                # Check config
+                for folder in $ENV_LOCAL_CONFIG_FOLDERS; do
+                    resolvedFoldername="$customConfDirname/$folder"
+                    if [ ! -d $resolvedFoldername ]; then
+                        echo "   ERROR: Folder \"$resolvedFoldername\" NOT found."
+                        exit 1
+                    fi
+                done
+
+                # Cleanup
+                echo ">>> Removing host folder '$ENV_HOST_CONFIG_FOLDER'"
                 if [[ ! -z $DOCKER_VBOX ]]; then
                     docker-machine ssh $DOCKER_VBOX "$removeConfigCommandVBOX"
-                    docker-machine scp -r "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" $DOCKER_VBOX:"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER"
+                else
+                    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$removeConfigCommand"
+                fi
+
+                # Transfer
+                for folder in $ENV_LOCAL_CONFIG_FOLDERS; do
+                    resolvedFoldername="$customConfDirname/$folder"
+                    echo ">>> Transferring '$resolvedFoldername' to host as '$ENV_HOST_CONFIG_FOLDER'"
+                    if [[ ! -z $DOCKER_VBOX ]]; then
+                        docker-machine scp -r "$resolvedFoldername/." $DOCKER_VBOX:"$ENV_HOST_CONFIG_FOLDER/"
+                    else
+                        scp -i "$DOCKER_REMOTE_HOST_KEY" -r -P "$DOCKER_REMOTE_HOST_PORT" "$resolvedFoldername/." "$DOCKER_REMOTE_HOST_USER"@"$DOCKER_REMOTE_HOST_IP":"$ENV_HOST_CONFIG_FOLDER/"
+                    fi
+                done
+
+                # Set permissions
+                if [[ ! -z $DOCKER_VBOX ]]; then
                     docker-machine ssh $DOCKER_VBOX "$setOwnerCommand"
                     docker-machine ssh $DOCKER_VBOX "$setPermissionsCommand"
                 else
-                    ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$removeConfigCommand"
-                    scp -i "$DOCKER_REMOTE_HOST_KEY" -r -P "$DOCKER_REMOTE_HOST_PORT" "$CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER" "$DOCKER_REMOTE_HOST_USER"@"$DOCKER_REMOTE_HOST_IP":"$CUBX_ENV_BASE_HOST_CONFIG_FOLDER"
                     ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$setOwnerCommand"
                     ssh -i "$DOCKER_REMOTE_HOST_KEY" -l $DOCKER_REMOTE_HOST_USER -p $DOCKER_REMOTE_HOST_PORT $DOCKER_REMOTE_HOST_IP "$setPermissionsCommand"
                 fi
@@ -112,7 +136,7 @@ executeCommands(){
 			echo "  Executing command with username '$username' ..."
 			# Note: The password will be passed into the cubx.conf file AND the file will be removed instantly at the end of this script.
 			# I already tried at least to base64 encode and decode the password, but I didn't manage to make base64 work within the docker-vm (tinycorelinux)
-			userCredentials=CUBX_ENV_HOST_USER=$username$'\n'CUBX_ENV_HOST_PW=$password
+			userCredentials=ENV_HOST_USER=$username$'\n'ENV_HOST_PW=$password
 			shebangAndCredentials="$shebang"$'\n'"$userCredentials"
 			commandFileContent=${commandFileContent/"$shebang"/"$shebangAndCredentials"}
 			# echo $commandFileContent
@@ -120,9 +144,8 @@ executeCommands(){
 		fi
 
 		#
-		# execute the "lib/<command>"
-		# ----------------------------
-		echo ">> Executing $commandFile"
+		# now really execute the command
+		# ------------------------------
 		if [[ ! -z $DOCKER_VBOX ]]; then
 		    docker-machine ssh $DOCKER_VBOX "$commandFileContent"
 		else
@@ -185,13 +208,15 @@ prepareConfiguration(){
 	#
 	# Provide the configuration (default + custom)
 	# ===============================================
-    DEFAULT_CONF="etc/default/default.conf"
+    DEFAULT_CONF="etc/default.conf"
 	defaultConf=$(cat $DEFAULT_CONF)
     # source the default configuration to have it available within this script too
     . $DEFAULT_CONF
 
 	customConf=""
+	customConfDirname=""
 	if [[ ("${1#*'.conf'}" != "$1") && ( -e $1 ) ]]; then {
+	    customConfDirname=$(dirname $1)
 		customConf=$(cat $1)
 		# source the custom configuration to have it available within this script too
 		. $1

@@ -1,10 +1,10 @@
 {
-  "name": "cubbles-docker-devutils",
-  "version": "0.1.0",
-  "description": "A set of utils, supporting core-developers to control a local docker-vm.",
+  "name": "base-rc",
+  "version": "3.0",
+  "description": "A ssh based remote-control for the Cubbles Base.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cubbles/cubbles-docker-devutils.git"
+    "url": "https://github.com/cubbles/base-rc.git"
   },
   "keywords": [
     "cubbles",
