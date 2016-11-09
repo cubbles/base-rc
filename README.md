@@ -32,13 +32,13 @@ Some configuration files for a local setup are prepared at `etc/`:
 The `etc/*.conf` file refers to a *local* and a *host* -config folder:
 
 ```bash
-CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER="opt/host-resources/cubbles-base-local"
-CUBX_ENV_BASE_HOST_CONFIG_FOLDER="/mnt/sda1/tmp/base-config-local"
+ENV_LOCAL_CONFIG_FOLDERS="opt/host-resources/cubbles-base-local"
+ENV_HOST_CONFIG_FOLDER="/mnt/sda1/tmp/base-config-local"
 ```
 
-* `CUBX_ENV_BASE_LOCAL_CONFIG_FOLDER`: The _local_ folder to manage additional resource for the Base instance a runtime. 
+* `ENV_LOCAL_CONFIG_FOLDERS`: The _local_ folder to manage additional resource for the Base instance a runtime. 
     * The folder may contain any number of resources, but is expected to contain a `docker-compose-custom.yml` file. 
-* `CUBX_ENV_BASE_HOST_CONFIG_FOLDER`: The _host_ folder all the (local) resources will be transferred to. 
+* `ENV_HOST_CONFIG_FOLDER`: The _host_ folder all the (local) resources will be transferred to. 
     * The folder will be created (and updated) automatically, when running the `lib/base/setup.sh` command. 
     * Take care your `DOCKER_REMOTE_HOST_USER` has the permissions to create this folder on the host.
 

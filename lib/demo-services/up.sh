@@ -11,7 +11,7 @@ start(){
     image="cubbles/demo-services:$CUBX_ENV_DEMOSERVICES_TAG"
     sourcesVolume=""
     if [ ${CUBX_ENV_DEMOSERVICES_CLUSTER} = "dev" ]; then
-        sourcesVolume="-v $CUBX_ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER/demo-services/resources/opt/demo-services:/opt/demo-services"
+        sourcesVolume="-v $ENV_VM_MOUNTPOINT/$CUBX_ENV_DEMOSERVICES_IMAGE_LOCAL_SOURCE_FOLDER/demo-services/resources/opt/demo-services:/opt/demo-services"
     fi
     command="up $CUBX_ENV_DEMOSERVICES_CLUSTER"
 
