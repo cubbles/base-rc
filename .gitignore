@@ -1,11 +1,6 @@
 /.idea
 
-# custom configuration files
-/etc
-/opt/host-resources
-
-# custom commands
-/lib
-
 # all .tar* files
 *.tar*
+
+npm-debug.log
