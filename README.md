@@ -1,6 +1,9 @@
 # base-rc (Base Remote Control)
 Purpose: Setup and control a Cubbles-Base ... locally or on a remote host. 
 
+## Prerequisite
+If you want to use `base-rc` with local docker instance on windows you need to install `docker-machine` (comes with `Docker Toolbox` installation).
+
 ## Usage
 1. Clone the Repo
 2. Open your git-bash and `cd` into the root directory

@@ -94,9 +94,10 @@ executeCommands(){
                 # Transfer
                 for folder in $ENV_LOCAL_CONFIG_FOLDERS; do
                     resolvedFoldername="$customConfDirname/$folder"
+                    echo $resolvedFoldername
                     echo ">>> Transferring '$resolvedFoldername' to host as '$ENV_HOST_CONFIG_FOLDER'"
                     if [[ ! -z $DOCKER_VBOX ]]; then
-                        docker-machine scp -r "$resolvedFoldername/." $DOCKER_VBOX:"$ENV_HOST_CONFIG_FOLDER/"
+                        docker-machine scp -r "$resolvedFoldername/." $DOCKER_VBOX:"$ENV_HOST_CONFIG_FOLDER/" || alternate_scp $resolvedFoldername $ENV_HOST_CONFIG_FOLDER
                     else
                         scp -i "$DOCKER_REMOTE_HOST_KEY" -r -P "$DOCKER_REMOTE_HOST_PORT" "$resolvedFoldername/." "$DOCKER_REMOTE_HOST_USER"@"$DOCKER_REMOTE_HOST_IP":"$ENV_HOST_CONFIG_FOLDER/"
                     fi
@@ -153,6 +154,23 @@ executeCommands(){
 		fi
 		echo "<< Executing $commandFile ... Done."
 	done
+}
+
+alternate_scp() {
+	echo "Hum... seems 'docker-machine scp' doesn't work, try alternate way.."
+	# retrieve docker default machine SSH PORT
+	# cat ~/.docker/machine/machines/default/default/default.vbox|grep Forwarding
+	# using grep regexp to isolate forwarded port number only
+	SSHPORT=`cat ~/.docker/machine/machines/$DOCKER_VBOX/$DOCKER_VBOX/$DOCKER_VBOX.vbox|grep Forwarding| grep -oP "hostport=\"\K\d+"`
+	echo " - retrieved ssh forwarded port: $SSHPORT"
+	# using generated pk
+	SSHIDFILE=~/.docker/machine/machines/$DOCKER_VBOX/id_rsa
+	echo " - using identity: $SSHIDFILE"
+
+    resources=$1
+    target=$2
+	SSHOPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -3 -o IdentitiesOnly=yes "
+    scp.exe $SSHOPTS -o Port=$SSHPORT -o IdentityFile="$SSHIDFILE" -r "$resources/." docker@127.0.0.1:"$target/" || (echo "Unable to scp machine $DOCKER_VBOX" && exit 1)
 }
 
 prepareVBox(){
